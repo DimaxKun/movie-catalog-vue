@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { Notyf } from "notyf";
 import api from "../api";
+import { Modal } from "bootstrap";
 
 const router = useRouter();
 const notyf = new Notyf();
@@ -12,8 +13,6 @@ const movies = ref([]);
 
 const mode = ref("add");
 const workingId = ref(null);
-
-const showModal = ref(false);
 
 const form = ref({
   title: "",
@@ -59,7 +58,6 @@ async function fetchMovies() {
 function openAddModal() {
   mode.value = "add";
   resetForm();
-  showModal.value = true;
 }
 
 function openEditModal(movie) {
@@ -72,7 +70,6 @@ function openEditModal(movie) {
     description: movie.description || "",
     genre: movie.genre || ""
   };
-  showModal.value = true;
 }
 
 const isSaving = ref(false);
@@ -95,7 +92,6 @@ async function saveMovie() {
       notyf.success("Movie updated.");
     }
 
-    showModal.value = false;
     await fetchMovies();
   } catch (e) {
     const msg = e?.response?.data?.message || e?.response?.data?.error?.message;
@@ -151,11 +147,8 @@ onMounted(() => {
           Refresh
         </button>
 
-        <button
-          id="addMovie"
-          class="btn btn-primary"
-          @click="openAddModal"
-        >
+        <button id="addMovie" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#movieModal"
+          @click="openAddModal">
           Add Movie
         </button>
       </div>
@@ -189,17 +182,11 @@ onMounted(() => {
               </td>
               <td>{{ m.genre }}</td>
               <td class="text-end" style="white-space: nowrap;">
-                <button
-                  class="btn btn-sm btn-outline-primary me-2"
-                  @click="openEditModal(m)"
-                >
+                <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#movieModal"
+                  @click="openEditModal(m)">
                   Update
                 </button>
-                <button
-                  class="btn btn-sm btn-outline-danger"
-                  @click="deleteMovie(m._id)"
-                  :disabled="isDeleting"
-                >
+                <button class="btn btn-sm btn-outline-danger" @click="deleteMovie(m._id)" :disabled="isDeleting">
                   Delete
                 </button>
               </td>
@@ -209,20 +196,13 @@ onMounted(() => {
       </div>
     </div>
 
-
-    <div
-      v-if="showModal"
-      class="modal fade show d-block"
-      tabindex="-1"
-      role="dialog"
-      @click.self="showModal = false"
-    >
+    <div class="modal fade" id="movieModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
           <form @submit.prevent="saveMovie">
             <div class="modal-header">
               <h5 class="modal-title">{{ modalTitle }}</h5>
-              <button type="button" class="btn-close" @click="showModal = false" aria-label="Close" />
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" />
             </div>
             <div class="modal-body">
               <div class="row g-3">
@@ -249,10 +229,10 @@ onMounted(() => {
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-outline-secondary" @click="showModal = false" :disabled="isSaving">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" :disabled="isSaving">
                 Cancel
               </button>
-              <button type="submit" class="btn btn-primary" :disabled="isSaving">
+              <button type="submit" class="btn btn-primary" :disabled="isSaving" data-bs-dismiss="modal">
                 {{ mode === "add" ? "Add" : "Update" }}
               </button>
             </div>
