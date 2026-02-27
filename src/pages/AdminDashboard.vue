@@ -1,9 +1,8 @@
 <script setup>
-import { computed, nextTick, onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { Notyf } from "notyf";
 import api from "../api";
-import { Modal } from "bootstrap";
 
 const router = useRouter();
 const notyf = new Notyf();
@@ -13,6 +12,8 @@ const movies = ref([]);
 
 const mode = ref("add");
 const workingId = ref(null);
+
+const showModal = ref(false);
 
 const form = ref({
   title: "",
@@ -58,6 +59,7 @@ async function fetchMovies() {
 function openAddModal() {
   mode.value = "add";
   resetForm();
+  showModal.value = true;
 }
 
 function openEditModal(movie) {
@@ -70,14 +72,7 @@ function openEditModal(movie) {
     description: movie.description || "",
     genre: movie.genre || ""
   };
-}
-
-async function hideMovieModal() {
-  await nextTick();
-  const el = document.getElementById("movieModal");
-  if (!el) return;
-  const instance = Modal.getOrCreateInstance(el);
-  instance.hide();
+  showModal.value = true;
 }
 
 const isSaving = ref(false);
@@ -100,7 +95,7 @@ async function saveMovie() {
       notyf.success("Movie updated.");
     }
 
-    await hideMovieModal();
+    showModal.value = false;
     await fetchMovies();
   } catch (e) {
     const msg = e?.response?.data?.message || e?.response?.data?.error?.message;
@@ -159,8 +154,6 @@ onMounted(() => {
         <button
           id="addMovie"
           class="btn btn-primary"
-          data-bs-toggle="modal"
-          data-bs-target="#movieModal"
           @click="openAddModal"
         >
           Add Movie
@@ -198,8 +191,6 @@ onMounted(() => {
               <td class="text-end" style="white-space: nowrap;">
                 <button
                   class="btn btn-sm btn-outline-primary me-2"
-                  data-bs-toggle="modal"
-                  data-bs-target="#movieModal"
                   @click="openEditModal(m)"
                 >
                   Update
@@ -219,13 +210,19 @@ onMounted(() => {
     </div>
 
 
-    <div class="modal fade" id="movieModal" tabindex="-1" aria-hidden="true">
+    <div
+      v-if="showModal"
+      class="modal fade show d-block"
+      tabindex="-1"
+      role="dialog"
+      @click.self="showModal = false"
+    >
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
           <form @submit.prevent="saveMovie">
             <div class="modal-header">
               <h5 class="modal-title">{{ modalTitle }}</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" />
+              <button type="button" class="btn-close" @click="showModal = false" aria-label="Close" />
             </div>
             <div class="modal-body">
               <div class="row g-3">
@@ -252,7 +249,7 @@ onMounted(() => {
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" :disabled="isSaving">
+              <button type="button" class="btn btn-outline-secondary" @click="showModal = false" :disabled="isSaving">
                 Cancel
               </button>
               <button type="submit" class="btn btn-primary" :disabled="isSaving">
