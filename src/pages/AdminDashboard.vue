@@ -165,7 +165,7 @@ onMounted(() => {
 
     <div v-else class="card shadow-sm">
       <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle mb-0">
+        <table class="table align-middle table-hover mb-0">
           <thead>
             <tr>
               <th>Title</th>
